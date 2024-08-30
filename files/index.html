@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>File Uploader</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #004085;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 22px;
+            color: #495057;
+            margin-bottom: 30px;
+        }
+
+        #upload-form {
+            text-align: center;
+            border: 2px solid #007bff;
+            padding: 60px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        #file-details {
+            margin-top: 20px;
+            text-align: left;
+            color: #495057;
+        }
+
+        #upload-status {
+            margin-top: 20px;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        #choose-btn,
+        #submit-btn,
+        #reset-btn {
+            cursor: pointer;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        #choose-btn:hover,
+        #submit-btn:hover,
+        #reset-btn:hover {
+            background-color: #0056b3;
+        }
+
+        #choose-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            background-color: #ffc107;
+        }
+
+        #choose-btn:hover {
+            background-color: #e0a800;
+        }
+
+        #submit-btn,
+        #reset-btn {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="upload-form">
+    <h1>Cloud File Storage Service</h1>
+    <h2>Select a File to Upload</h2>
+    <label for="file-input" id="choose-btn" class="custom-file-upload">
+        <input type="file" id="file-input">
+        Choose File
+    </label>
+    <div id="file-details"></div>
+    <button id="submit-btn">Submit</button>
+    <button id="reset-btn">Reset</button>
+    <div id="upload-status"></div>
+</div>
+
+<script>
+    document.getElementById('file-input').addEventListener('change', getFileDetails);
+
+    function getFileDetails(event) {
+        const fileInput = document.getElementById('file-input');
+        const fileDetails = document.getElementById('file-details');
+
+        while (fileDetails.firstChild) {
+            fileDetails.removeChild(fileDetails.firstChild);
+        }
+
+        for (const file of fileInput.files) {
+            const fileInfo = document.createElement('p');
+            fileInfo.textContent = `File name: ${file.name}, Size: ${file.size} bytes`;
+            fileDetails.appendChild(fileInfo);
+        }
+    }
+
+    document.getElementById('submit-btn').addEventListener('click', uploadFile);
+
+    function uploadFile(event) {
+
+        const fileInput = document.getElementById('file-input');
+        const uploadStatus = document.getElementById('upload-status');
+
+        if (fileInput.files.length === 0) {
+            alert('Please select a file before submitting.');
+            return;
+        }
+        const file = fileInput.files[0];
+
+        const apiUrl = 'https://ierglgmq9j.execute-api.eu-central-1.amazonaws.com/prod/upload'
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const urlWithParams = `${apiUrl}?filename=${encodeURIComponent(file.name)}`;
+
+        uploadStatus.textContent = 'File upload in progress...';
+
+        fetch(urlWithParams, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const uploadStatus = document.getElementById('upload-status');
+                uploadStatus.textContent = `File upload successful: ${file.name}`;
+                console.log('File upload successful:', data);
+            })
+            .catch(error => {
+                const uploadStatus = document.getElementById('upload-status');
+                uploadStatus.textContent = `There was a problem with the file upload: ${error.message}`;
+                console.error('There was a problem with the file upload:', error);
+            });
+    }
+
+    document.getElementById('reset-btn').addEventListener('click', function () {
+        const fileDetails = document.getElementById('file-details');
+        const uploadStatus = document.getElementById('upload-status');
+
+        while (fileDetails.firstChild) {
+            fileDetails.removeChild(fileDetails.firstChild);
+        }
+
+        uploadStatus.textContent = '';
+    });
+
+</script>
+</body>
+
+</html>
